@@ -2,6 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MyBusiness.DepartmentMicroservice.Services;
+using MyBusiness.EmployeeMicroservice.Services;
 using MyBusiness.RelationData;
 using MyBusiness.UserMicroservice.Services;
 
@@ -15,7 +19,14 @@ builder.Services.AddSingleton<MongoDBDataContext>(provider =>
 new MongoDBDataContext(builder.Configuration.GetConnectionString("MongoDB"), "mybusinessdb"));
 
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+{
+    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var database = mongoClient.GetDatabase("mybusinessdb");
+    return database.GetCollection<BsonDocument>("employees");
+});
 
 builder.Services.AddCors(options =>
 options.AddPolicy("AllowReactFrontend",
