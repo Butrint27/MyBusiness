@@ -49,21 +49,24 @@ namespace MyBusiness.DepartmentMicroservice.Controller
     }
 
     // PUT: api/Department/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateDepartment(int id, DepartmentDTO departmentDTO)
+    [HttpPut]
+    public async Task<IActionResult> UpdateDepartmentAsync([FromBody] DepartmentDTO departmentDTO)
     {
-        if (id != departmentDTO.DepartmentId)
+        if (departmentDTO == null)
         {
-            return BadRequest();
+            return BadRequest("Department DTO is null");
         }
 
-        var updatedDepartment = await _departmentService.UpdateDepartmentAsync(id, departmentDTO);
+            // Call the service method to update the department
+        var updatedDepartment = await _departmentService.UpdateDepartmentAsync(departmentDTO);
+
         if (updatedDepartment == null)
         {
-            return NotFound();
+            return NotFound("Department not found");
         }
 
-        return NoContent();
+            // Return the updated department DTO
+        return Ok(updatedDepartment);
     }
 
     // DELETE: api/Department/5

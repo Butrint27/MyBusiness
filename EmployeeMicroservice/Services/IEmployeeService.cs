@@ -11,7 +11,7 @@ namespace MyBusiness.EmployeeMicroservice.Services
         Task<IEnumerable<EmployeeDTO>> GetAllEmployeesAsync();
         Task<EmployeeDTO> GetEmployeeByIdAsync(int employeeId);
         Task<EmployeeDTO> CreateEmployeeAsync(EmployeeDTO employeeDTO);
-        Task<EmployeeDTO> UpdateEmployeeAsync(int employeeId, EmployeeDTO employeeDTO);
+        Task<EmployeeDTO> UpdateEmployeeAsync(EmployeeDTO employeeDTO);
         Task<bool> DeleteEmployeeAsync(int employeeId);
     }
 }

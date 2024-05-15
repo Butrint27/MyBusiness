@@ -16,5 +16,6 @@ namespace MyBusiness.EmployeeMicroservice.DTO
         public string PhoneNumber { get; set; }
         public DateTime HireDate { get; set; }
         public int DepartmentId { get; set; }
+
     }
 }

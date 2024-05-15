@@ -46,21 +46,24 @@ namespace MyBusiness.EmployeeMicroservice.Controller
     }
 
     // PUT: api/employees/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateEmployee(int id, EmployeeDTO employeeDTO)
+    [HttpPut]
+    public async Task<IActionResult> UpdateEmployeeAsync([FromBody] EmployeeDTO employeeDTO)
     {
-        if (id != employeeDTO.EmployeeId)
-        {
-            return BadRequest();
-        }
+      if (employeeDTO == null)
+      {
+        return BadRequest("Employee DTO is null");
+      }
 
-        var updatedEmployee = await _employeeService.UpdateEmployeeAsync(id, employeeDTO);
-        if (updatedEmployee == null)
-        {
-            return NotFound();
-        }
+    // Call the service method to update the employee
+      var updatedEmployee = await _employeeService.UpdateEmployeeAsync(employeeDTO);
 
-        return NoContent();
+      if (updatedEmployee == null)
+      {
+        return NotFound("Employee not found");
+      }
+
+    // Return the updated employee DTO
+      return Ok(updatedEmployee);
     }
 
     // DELETE: api/employees/5

@@ -89,21 +89,26 @@ namespace MyBusiness.DepartmentMicroservice.Services
         return true;
     }
 
-    public async Task<DepartmentDTO> UpdateDepartmentAsync(int departmentId, DepartmentDTO departmentDTO)
+    public async Task<DepartmentDTO> UpdateDepartmentAsync(DepartmentDTO departmentDTO)
     {
-        var existingDepartment = await _mysqlContext.Departments.FindAsync(departmentId);
-        if (existingDepartment == null)
-        {
-            return null; // Department not found
-        }
-
-        // Update existing department entity
-        existingDepartment.DepartmentName = departmentDTO.DepartmentName;
-
-        await _mysqlContext.SaveChangesAsync();
-
-        // Return updated department DTO
-        return departmentDTO;
+    if (departmentDTO == null)
+    {
+        throw new ArgumentNullException(nameof(departmentDTO), "Department DTO is null");
     }
+
+    var existingDepartment = await _mysqlContext.Departments.FindAsync(departmentDTO.DepartmentId);
+    if (existingDepartment == null)
+    {
+        return null; // Department not found
     }
+
+    // Update existing department entity
+    existingDepartment.DepartmentName = departmentDTO.DepartmentName;
+
+    await _mysqlContext.SaveChangesAsync();
+
+    // Return updated department DTO
+    return departmentDTO;
+    }
+  }
 }

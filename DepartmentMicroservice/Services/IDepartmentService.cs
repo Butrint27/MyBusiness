@@ -11,7 +11,7 @@ namespace MyBusiness.DepartmentMicroservice.Services
         Task<IEnumerable<DepartmentDTO>> GetAllDepartmentsAsync();
         Task<DepartmentDTO> GetDepartmentByIdAsync(int departmentId);
         Task<DepartmentDTO> CreateDepartmentAsync(DepartmentDTO departmentDTO);
-        Task<DepartmentDTO> UpdateDepartmentAsync(int departmentId, DepartmentDTO departmentDTO);
+        Task<DepartmentDTO> UpdateDepartmentAsync(DepartmentDTO departmentDTO);
         Task<bool> DeleteDepartmentAsync(int departmentId);
     }
 }

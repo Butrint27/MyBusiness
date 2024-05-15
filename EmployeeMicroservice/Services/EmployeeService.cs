@@ -119,26 +119,32 @@ namespace MyBusiness.EmployeeMicroservice.Services
       return employeeDTO;
     }
 
-    public async Task<EmployeeDTO> UpdateEmployeeAsync(int employeeId, EmployeeDTO employeeDTO)
+    public async Task<EmployeeDTO> UpdateEmployeeAsync(EmployeeDTO employeeDTO)
     {
-       var existingEmployee = await _mysqlcontext.Employees.FindAsync(employeeId);
-       if (existingEmployee == null)
-       {
+    if (employeeDTO == null)
+    {
+        throw new ArgumentNullException(nameof(employeeDTO), "Employee DTO is null");
+    }
+
+    var existingEmployee = await _mysqlcontext.Employees.FindAsync(employeeDTO.EmployeeId);
+    if (existingEmployee == null)
+    {
         return null; // Employee not found
-       }
+    }
 
-       existingEmployee.Name = employeeDTO.Name;
-       existingEmployee.Surname = employeeDTO.Surname;
-       existingEmployee.Email = employeeDTO.Email;
-       existingEmployee.PhoneNumber = employeeDTO.PhoneNumber;
-       existingEmployee.HireDate = employeeDTO.HireDate;
-       existingEmployee.DepartmentId = employeeDTO.DepartmentId;
+    // Update existing employee entity
+    existingEmployee.Name = employeeDTO.Name;
+    existingEmployee.Surname = employeeDTO.Surname;
+    existingEmployee.Email = employeeDTO.Email;
+    existingEmployee.PhoneNumber = employeeDTO.PhoneNumber;
+    existingEmployee.HireDate = employeeDTO.HireDate;
+    existingEmployee.DepartmentId = employeeDTO.DepartmentId;
 
-       await _mysqlcontext.SaveChangesAsync();
+    await _mysqlcontext.SaveChangesAsync();
 
-    // Also update in MongoDB
-       var filter = Builders<BsonDocument>.Filter.Eq("_id", employeeId);
-       var update = Builders<BsonDocument>.Update
+    // Update employee in MongoDB
+    var filter = Builders<BsonDocument>.Filter.Eq("_id", employeeDTO.EmployeeId);
+    var update = Builders<BsonDocument>.Update
         .Set("name", employeeDTO.Name)
         .Set("surname", employeeDTO.Surname)
         .Set("email", employeeDTO.Email)
@@ -146,9 +152,10 @@ namespace MyBusiness.EmployeeMicroservice.Services
         .Set("hireDate", employeeDTO.HireDate)
         .Set("departmentId", employeeDTO.DepartmentId);
 
-       await _mongoCollection.UpdateOneAsync(filter, update);
+    await _mongoCollection.UpdateOneAsync(filter, update);
 
-       return employeeDTO;
+    // Return updated employee DTO
+    return employeeDTO;
     }
   }
 }
