@@ -15,7 +15,7 @@ namespace MyBusiness.RelationData
 {
     public class MySQLDataContext : DbContext
     {
-    public MySQLDataContext(DbContextOptions<MySQLDataContext> options) : base(options)
+     public MySQLDataContext(DbContextOptions<MySQLDataContext> options) : base(options)
     {
     }
 
@@ -32,10 +32,10 @@ namespace MyBusiness.RelationData
         // Define relationships between entities
 
         modelBuilder.Entity<Employee>()
-            .HasOne(e => e.Department) // Each employee belongs to one department
-            .WithMany(d => d.Employees) // Each department can have many employees
-            .HasForeignKey(e => e.DepartmentId) // Foreign key property
-            .IsRequired(); // Department is required for each employee
+            .HasOne(e => e.Department)
+            .WithMany(d => d.Employees)
+            .HasForeignKey(e => e.DepartmentId)
+            .IsRequired();
 
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Product)
@@ -46,7 +46,6 @@ namespace MyBusiness.RelationData
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Supplier)
             .WithMany(s => s.Transactions)
-            .HasForeignKey(t => t.SupplierId)
             .IsRequired();
 
         modelBuilder.Entity<Transaction>()
@@ -60,10 +59,9 @@ namespace MyBusiness.RelationData
             .UsingEntity(j => j.ToTable("ProductReports"));
 
         modelBuilder.Entity<Report>()
-            .HasMany(r => r.Suppliers)
+            .HasOne(r => r.Supplier)
             .WithMany(s => s.Reports)
-            .UsingEntity(j => j.ToTable("SupplierReports"));
+            .IsRequired();
     }
-
     }
 }

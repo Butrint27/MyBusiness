@@ -18,8 +18,5 @@ namespace MyBusiness.ProductMicroservice.DTO
       public DateTime LastUpdated { get; set; }
       public string Category { get; set; }
       public bool IsActive { get; set; }
-      public ICollection<TransactionDTO> Transactions { get; set; }
-      public ICollection<ReportDTO> Reports { get; set; }
-      public ICollection<SupplierDTO> Suppliers { get; set; }
     }
 }

@@ -18,8 +18,5 @@ namespace MyBusiness.SupplierMicroservice.DTO
      public string Country { get; set; }
      public string Website { get; set; }
      public bool IsActive { get; set; }
-     public ICollection<ProductDTO> Products { get; set; }
-     public ICollection<TransactionDTO> Transactions { get; set; }
-     public ICollection<ReportDTO> Reports { get; set; }
     }
 }

@@ -16,7 +16,6 @@ namespace MyBusiness.ReportMicroservice.DTO
       public string Content { get; set; }
       public string Author { get; set; }
       public ICollection<ProductDTO> Products { get; set; }
-      public ICollection<TransactionDTO> Transactions { get; set; }
       public SupplierDTO Supplier { get; set; }
     }
 }
