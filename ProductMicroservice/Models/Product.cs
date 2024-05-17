@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MyBusiness.ReportMicroservice.Models;
+using MyBusiness.SupplierMicroservice.Models;
 using MyBusiness.TransactionMicroservice.Models;
 
 namespace MyBusiness.ProductMicroservice.Models
@@ -19,5 +20,7 @@ namespace MyBusiness.ProductMicroservice.Models
        public bool IsActive { get; set; }
        public virtual ICollection<Transaction> Transactions { get; set; }
        public virtual ICollection<Report> Reports { get; set; }
+       public virtual ICollection<Supplier> Suppliers { get; set; }
+
     }
 }

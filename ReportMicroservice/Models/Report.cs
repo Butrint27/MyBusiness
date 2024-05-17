@@ -16,7 +16,7 @@ namespace MyBusiness.ReportMicroservice.Models
       public string Content { get; set; }
       public string Author { get; set; }
       public virtual ICollection<Product> Products { get; set; }
-      public virtual ICollection<Supplier> Suppliers { get; set; }
       public virtual ICollection<Transaction> Transactions { get; set; }
+      public virtual Supplier Supplier { get; set; }
     }
 }
