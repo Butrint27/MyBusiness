@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "1+SvYlrSAjgVkETtJHcvR2zhsiykJwufUYCW9wBjUUtAi883XPL0xYMVE+oQgTzcO129wWoRLhwsE9YlvsbpoA==",
+  "dgSpecHash": "5PhMx7jzQhuLfBylrf1+xdGcUmemOPiy+aBOwoGfZmwj0KnEZb92BJ38C79SR1aYExPivqrWTAOasqvjtNc0aw==",
   "success": true,
   "projectFilePath": "/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/MyBusiness.csproj",
   "expectedPackageFiles": [
+    "/Users/this/.nuget/packages/automapper/13.0.1/automapper.13.0.1.nupkg.sha512",
     "/Users/this/.nuget/packages/awssdk.core/3.7.100.14/awssdk.core.3.7.100.14.nupkg.sha512",
     "/Users/this/.nuget/packages/awssdk.securitytoken/3.7.100.14/awssdk.securitytoken.3.7.100.14.nupkg.sha512",
     "/Users/this/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",

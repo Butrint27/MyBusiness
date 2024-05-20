@@ -10,13 +10,15 @@ namespace MyBusiness.SupplierMicroservice.DTO
 {
     public class SupplierDTO
     {
-     public int SupplierId { get; set; }
-     public string Name { get; set; }
-     public string ContactInfo { get; set; }
-     public string Address { get; set; }
-     public string City { get; set; }
-     public string Country { get; set; }
-     public string Website { get; set; }
-     public bool IsActive { get; set; }
+    public int SupplierId { get; set; }
+    public string Name { get; set; }
+    public string ContactInfo { get; set; }
+    public string Address { get; set; }
+    public string City { get; set; }
+    public string Country { get; set; }
+    public string Website { get; set; }
+    public bool IsActive { get; set; }
+    public List<TransactionDTO> Transactions { get; set; }
+    public List<ReportDTO> Reports { get; set; }
     }
 }

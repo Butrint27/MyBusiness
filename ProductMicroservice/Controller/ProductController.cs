@@ -19,101 +19,67 @@ namespace MyBusiness.ProductMicroservice.Controller
         _productService = productService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateProduct([FromBody] ProductDTO productDTO)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAllProductsAsync()
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
+        var products = await _productService.GetAllProductsAsync();
+        return Ok(products);
+    }
 
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ProductDTO>> GetProductByIdAsync(int id)
+    {
+        var product = await _productService.GetProductByIdAsync(id);
+        if (product == null)
+        {
+            return NotFound();
+        }
+        return Ok(product);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ProductDTO>> CreateProductAsync(ProductDTO productDTO)
+    {
         try
         {
             var createdProduct = await _productService.CreateProductAsync(productDTO);
-            return Ok(createdProduct);
+            return CreatedAtAction(nameof(GetProductByIdAsync), new { id = createdProduct.ProductId }, createdProduct);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAllProducts()
-    {
-        try
-        {
-            var products = await _productService.GetAllProductsAsync();
-            return Ok(products);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [HttpGet("{productId}")]
-    public async Task<IActionResult> GetProductById(int productId)
-    {
-        try
-        {
-            var product = await _productService.GetProductByIdAsync(productId);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(product);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            return BadRequest(ex.Message);
         }
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateProduct([FromBody] ProductDTO productDTO)
+    public async Task<ActionResult<ProductDTO>> UpdateProductAsync(ProductDTO productDTO)
     {
-        if (!ModelState.IsValid)
+        var existingProduct = await _productService.UpdateProductAsync(productDTO);
+        if (existingProduct == null)
         {
-            return BadRequest(ModelState);
+            return NotFound();
         }
 
         try
         {
-            var existingProduct = await _productService.GetProductByIdAsync(productDTO.ProductId);
-            if (existingProduct == null)
-            {
-                return NotFound();
-            }
-
             var updatedProduct = await _productService.UpdateProductAsync(productDTO);
-
             return Ok(updatedProduct);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            return BadRequest(ex.Message);
         }
     }
 
-    [HttpDelete("{productId}")]
-    public async Task<IActionResult> DeleteProduct(int productId)
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteProductAsync(int id)
     {
-        try
+        var deleted = await _productService.DeleteProductAsync(id);
+        if (!deleted)
         {
-            var result = await _productService.DeleteProductAsync(productId);
-            if (!result)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
+            return NotFound();
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
+        return NoContent();
     }
     }
-}
+} 

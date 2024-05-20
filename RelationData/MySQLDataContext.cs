@@ -31,37 +31,39 @@ namespace MyBusiness.RelationData
     {
         // Define relationships between entities
 
-        modelBuilder.Entity<Employee>()
-            .HasOne(e => e.Department)
-            .WithMany(d => d.Employees)
-            .HasForeignKey(e => e.DepartmentId)
-            .IsRequired();
+    modelBuilder.Entity<Employee>()
+        .HasOne(e => e.Department)
+        .WithMany(d => d.Employees)
+        .HasForeignKey(e => e.DepartmentId)
+        .IsRequired();
 
-        modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.Product)
-            .WithMany(p => p.Transactions)
-            .HasForeignKey(t => t.ProductId)
-            .IsRequired();
+    modelBuilder.Entity<Transaction>()
+        .HasOne(t => t.Product)
+        .WithMany(p => p.Transactions)
+        .HasForeignKey(t => t.ProductId)
+        .IsRequired();
 
-        modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.Supplier)
-            .WithMany(s => s.Transactions)
-            .IsRequired();
+    modelBuilder.Entity<Transaction>()
+        .HasOne(t => t.Supplier)
+        .WithMany(s => s.Transactions)
+        .HasForeignKey(t => t.SupplierId)
+        .IsRequired();
 
-        modelBuilder.Entity<Transaction>()
-            .HasMany(t => t.Reports)
-            .WithMany(r => r.Transactions)
-            .UsingEntity(j => j.ToTable("TransactionReports"));
+    modelBuilder.Entity<Report>()
+        .HasOne(r => r.Supplier)
+        .WithMany(s => s.Reports)
+        .HasForeignKey(r => r.SupplierId)
+        .IsRequired();
+        
+    modelBuilder.Entity<Report>()
+        .HasMany(r => r.Transactions)
+        .WithMany(t => t.Reports)
+        .UsingEntity(j => j.ToTable("TransactionReports"));
 
-        modelBuilder.Entity<Report>()
-            .HasMany(r => r.Products)
-            .WithMany(p => p.Reports)
-            .UsingEntity(j => j.ToTable("ProductReports"));
-
-        modelBuilder.Entity<Report>()
-            .HasOne(r => r.Supplier)
-            .WithMany(s => s.Reports)
-            .IsRequired();
-    }
+    modelBuilder.Entity<Report>()
+        .HasMany(r => r.Products)
+        .WithMany(p => p.Reports)
+        .UsingEntity(j => j.ToTable("ProductReports"));
+       }
     }
 }

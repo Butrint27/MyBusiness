@@ -1,12 +1,20 @@
+using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MyBusiness.DepartmentMicroservice.Services;
 using MyBusiness.EmployeeMicroservice.Services;
+using MyBusiness.ProductMicroservice.Services;
 using MyBusiness.RelationData;
+using MyBusiness.ReportMicroservice.Services;
+using MyBusiness.SupplierMicroservice.Services;
+using MyBusiness.TransactionMicroservice.Services;
 using MyBusiness.UserMicroservice.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,11 +29,39 @@ new MongoDBDataContext(builder.Configuration.GetConnectionString("MongoDB"), "my
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
 {
     var mongoClient = new MongoClient("mongodb://localhost:27017");
     var database = mongoClient.GetDatabase("mybusinessdb");
     return database.GetCollection<BsonDocument>("employees");
+});
+builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+{
+    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var database = mongoClient.GetDatabase("mybusinessdb");
+    return database.GetCollection<BsonDocument>("products");
+});
+builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+{
+    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var database = mongoClient.GetDatabase("mybusinessdb");
+    return database.GetCollection<BsonDocument>("reports");
+});
+builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+{
+    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var database = mongoClient.GetDatabase("mybusinessdb");
+    return database.GetCollection<BsonDocument>("transactions");
+});
+builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+{
+    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var database = mongoClient.GetDatabase("mybusinessdb");
+    return database.GetCollection<BsonDocument>("suppliers");
 });
 
 builder.Services.AddCors(options =>

@@ -147,3 +147,4 @@
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.pdb
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.genruntimeconfig.cache
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/ref/MyBusiness.dll
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/AutoMapper.dll

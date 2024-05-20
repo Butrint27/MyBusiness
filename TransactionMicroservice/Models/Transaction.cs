@@ -10,16 +10,16 @@ namespace MyBusiness.TransactionMicroservice.Models
 {
     public class Transaction
     {
-      public int TransactionId { get; set; }
+    public int TransactionId { get; set; }
     public DateTime Date { get; set; }
     public decimal Amount { get; set; }
     public string Type { get; set; } // Sale or Purchase
     public string PaymentMethod { get; set; }
     public bool IsPaid { get; set; }
     public int ProductId { get; set; }
-    public int SupplierId { get; set; } // New property for relationship with Supplier
-    public virtual Product Product { get; set; }
-    public virtual Supplier Supplier { get; set; } // Navigation property for Supplier
-    public virtual ICollection<Report> Reports { get; set; }
+    public Product Product { get; set; }
+    public int SupplierId { get; set; }
+    public Supplier Supplier { get; set; }
+    public List<Report> Reports { get; set; }
     }
 }

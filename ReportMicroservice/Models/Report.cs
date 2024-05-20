@@ -10,13 +10,14 @@ namespace MyBusiness.ReportMicroservice.Models
 {
     public class Report
     {
-      public int ReportId { get; set; }
-      public string Title { get; set; }
-      public DateTime DateGenerated { get; set; }
-      public string Content { get; set; }
-      public string Author { get; set; }
-      public virtual ICollection<Product> Products { get; set; }
-      public virtual ICollection<Transaction> Transactions { get; set; }
-      public virtual Supplier Supplier { get; set; }
+    public int ReportId { get; set; }
+    public string Title { get; set; }
+    public DateTime DateGenerated { get; set; }
+    public string Content { get; set; }
+    public string Author { get; set; }
+     public int SupplierId { get; set; }
+    public Supplier Supplier { get; set; }
+    public List<Transaction> Transactions { get; set; }
+    public List<Product> Products { get; set; }
     }
 }
