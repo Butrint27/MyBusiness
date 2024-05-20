@@ -16,10 +16,8 @@ namespace MyBusiness.TransactionMicroservice.Models
     public string Type { get; set; } // Sale or Purchase
     public string PaymentMethod { get; set; }
     public bool IsPaid { get; set; }
-    public int ProductId { get; set; }
-    public Product Product { get; set; }
-    public int SupplierId { get; set; }
-    public Supplier Supplier { get; set; }
-    public List<Report> Reports { get; set; }
+    public ICollection<Product> Products { get; set; }
+    public ICollection<Report> Reports { get; set; }
+    
     }
 }

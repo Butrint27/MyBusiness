@@ -17,68 +17,144 @@ namespace MyBusiness.SupplierMicroservice.Services
 {
     public class SupplierService : ISupplierService
     {
-    private readonly MySQLDataContext _mysqlcontext;
+    private readonly MySQLDataContext _mysqlContext;
     private readonly MongoDBDataContext _mongodbcontext;
     private readonly IMongoCollection<BsonDocument> _mongoCollection;
-    private readonly IMapper _mapper;
 
 
-    public SupplierService(MySQLDataContext mysqlcontext, MongoDBDataContext mongodbcontext, IMongoCollection<BsonDocument> mongoCollection, IMapper mapper)
+    public SupplierService(MySQLDataContext mysqlContext, MongoDBDataContext mongodbcontext, IMongoCollection<BsonDocument> mongoCollection)
     {
-        _mysqlcontext = mysqlcontext;
+        _mysqlContext = mysqlContext;
         _mongodbcontext = mongodbcontext;
         _mongoCollection = mongoCollection;
-        _mapper = mapper;
     }
 
      public async Task<IEnumerable<SupplierDTO>> GetAllSuppliersAsync()
     {
-        var suppliersMySQL = await _mysqlcontext.Suppliers.ToListAsync();
-        var suppliersDTO = _mapper.Map<IEnumerable<SupplierDTO>>(suppliersMySQL);
+        var suppliersMySQL = await _mysqlContext.Suppliers
+            .Include(s => s.Products)
+            .Include(s => s.Reports)
+            .ToListAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Empty;
-        var suppliersMongoDB = await _mongoCollection.Find(filter).ToListAsync();
-        var suppliersMongoDBDTO = _mapper.Map<IEnumerable<SupplierDTO>>(suppliersMongoDB);
+        var suppliersDTO = suppliersMySQL.Select(s => new SupplierDTO
+        {
+            SupplierId = s.SupplierId,
+            Name = s.Name,
+            ContactInfo = s.ContactInfo,
+            Address = s.Address,
+            City = s.City,
+            Country = s.Country,
+            Website = s.Website,
+            IsActive = s.IsActive,
+            Products = s.Products.Select(p => new ProductDTO
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                StockQuantity = p.StockQuantity,
+                LastUpdated = p.LastUpdated,
+                Category = p.Category,
+                IsActive = p.IsActive
+            }).ToList(),
+            Reports = s.Reports.Select(r => new ReportDTO
+            {
+                ReportId = r.ReportId,
+                Title = r.Title,
+                DateGenerated = r.DateGenerated,
+                Content = r.Content,
+                Author = r.Author
+            }).ToList()
+        });
 
-        return suppliersDTO.Concat(suppliersMongoDBDTO);
+        return suppliersDTO;
     }
 
     public async Task<SupplierDTO> GetSupplierByIdAsync(int supplierId)
     {
-        var supplierMySQL = await _mysqlcontext.Suppliers.FindAsync(supplierId);
-        if (supplierMySQL != null)
-            return _mapper.Map<SupplierDTO>(supplierMySQL);
+        var supplierMySQL = await _mysqlContext.Suppliers
+            .Include(s => s.Products)
+            .Include(s => s.Reports)
+            .FirstOrDefaultAsync(s => s.SupplierId == supplierId);
 
-        var filter = Builders<BsonDocument>.Filter.Eq("_id", supplierId);
-        var supplierMongoDB = await _mongoCollection.Find(filter).FirstOrDefaultAsync();
-        if (supplierMongoDB != null)
-            return _mapper.Map<SupplierDTO>(supplierMongoDB);
+        if (supplierMySQL == null)
+            return null;
 
-        return null; // Supplier not found in both MySQL and MongoDB
+        var supplierDTO = new SupplierDTO
+        {
+            SupplierId = supplierMySQL.SupplierId,
+            Name = supplierMySQL.Name,
+            ContactInfo = supplierMySQL.ContactInfo,
+            Address = supplierMySQL.Address,
+            City = supplierMySQL.City,
+            Country = supplierMySQL.Country,
+            Website = supplierMySQL.Website,
+            IsActive = supplierMySQL.IsActive,
+            Products = supplierMySQL.Products.Select(p => new ProductDTO
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                StockQuantity = p.StockQuantity,
+                LastUpdated = p.LastUpdated,
+                Category = p.Category,
+                IsActive = p.IsActive
+            }).ToList(),
+            Reports = supplierMySQL.Reports.Select(r => new ReportDTO
+            {
+                ReportId = r.ReportId,
+                Title = r.Title,
+                DateGenerated = r.DateGenerated,
+                Content = r.Content,
+                Author = r.Author
+            }).ToList()
+        };
+
+        return supplierDTO;
     }
 
     public async Task<SupplierDTO> CreateSupplierAsync(SupplierDTO supplierDTO)
     {
-        var supplierEntityMySQL = _mapper.Map<Supplier>(supplierDTO);
-        _mysqlcontext.Suppliers.Add(supplierEntityMySQL);
-        await _mysqlcontext.SaveChangesAsync();
+        var supplierMySQL = new Supplier
+        {
+            Name = supplierDTO.Name,
+            ContactInfo = supplierDTO.ContactInfo,
+            Address = supplierDTO.Address,
+            City = supplierDTO.City,
+            Country = supplierDTO.Country,
+            Website = supplierDTO.Website,
+            IsActive = supplierDTO.IsActive
+        };
 
-        var supplierEntityMongoDB = _mapper.Map<BsonDocument>(supplierDTO);
-        await _mongoCollection.InsertOneAsync(supplierEntityMongoDB);
+        await _mysqlContext.Suppliers.AddAsync(supplierMySQL);
+        await _mysqlContext.SaveChangesAsync();
 
-        return _mapper.Map<SupplierDTO>(supplierEntityMySQL);
+        var document = supplierDTO.ToBsonDocument();
+        await _mongoCollection.InsertOneAsync(document);
+
+        supplierDTO.SupplierId = supplierMySQL.SupplierId;
+        return supplierDTO;
     }
 
     public async Task<SupplierDTO> UpdateSupplierAsync(SupplierDTO supplierDTO)
     {
-        var existingSupplierEntityMySQL = await _mysqlcontext.Suppliers.FindAsync(supplierDTO.SupplierId);
-        if (existingSupplierEntityMySQL == null)
-            throw new ArgumentException("Supplier not found in MySQL");
+        var supplierMySQL = await _mysqlContext.Suppliers.FindAsync(supplierDTO.SupplierId);
+        if (supplierMySQL == null)
+            return null;
 
-        _mapper.Map(supplierDTO, existingSupplierEntityMySQL);
-        await _mysqlcontext.SaveChangesAsync();
+        supplierMySQL.Name = supplierDTO.Name;
+        supplierMySQL.ContactInfo = supplierDTO.ContactInfo;
+        supplierMySQL.Address = supplierDTO.Address;
+        supplierMySQL.City = supplierDTO.City;
+        supplierMySQL.Country = supplierDTO.Country;
+        supplierMySQL.Website = supplierDTO.Website;
+        supplierMySQL.IsActive = supplierDTO.IsActive;
 
-        var filter = Builders<BsonDocument>.Filter.Eq("_id", supplierDTO.SupplierId);
+        _mysqlContext.Suppliers.Update(supplierMySQL);
+        await _mysqlContext.SaveChangesAsync();
+
+        var filter = Builders<BsonDocument>.Filter.Eq("SupplierId", supplierDTO.SupplierId);
         var update = Builders<BsonDocument>.Update
             .Set("Name", supplierDTO.Name)
             .Set("ContactInfo", supplierDTO.ContactInfo)
@@ -90,19 +166,20 @@ namespace MyBusiness.SupplierMicroservice.Services
 
         await _mongoCollection.UpdateOneAsync(filter, update);
 
-        return _mapper.Map<SupplierDTO>(existingSupplierEntityMySQL);
+        return supplierDTO;
     }
 
+    // Delete a supplier by its ID from MySQL and MongoDB
     public async Task<bool> DeleteSupplierAsync(int supplierId)
     {
-        var existingSupplierEntityMySQL = await _mysqlcontext.Suppliers.FindAsync(supplierId);
-        if (existingSupplierEntityMySQL == null)
-            return false; // Supplier not found in MySQL
+        var supplierMySQL = await _mysqlContext.Suppliers.FindAsync(supplierId);
+        if (supplierMySQL == null)
+            return false;
 
-        _mysqlcontext.Suppliers.Remove(existingSupplierEntityMySQL);
-        await _mysqlcontext.SaveChangesAsync();
+        _mysqlContext.Suppliers.Remove(supplierMySQL);
+        await _mysqlContext.SaveChangesAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Eq("_id", supplierId);
+        var filter = Builders<BsonDocument>.Filter.Eq("SupplierId", supplierId);
         await _mongoCollection.DeleteOneAsync(filter);
 
         return true;

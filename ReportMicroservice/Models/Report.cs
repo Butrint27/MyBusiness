@@ -15,9 +15,7 @@ namespace MyBusiness.ReportMicroservice.Models
     public DateTime DateGenerated { get; set; }
     public string Content { get; set; }
     public string Author { get; set; }
-     public int SupplierId { get; set; }
-    public Supplier Supplier { get; set; }
-    public List<Transaction> Transactions { get; set; }
-    public List<Product> Products { get; set; }
+    public ICollection<Transaction> Transactions { get; set; }
+    public ICollection<Supplier> Suppliers { get; set; }
     }
 }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MyBusiness.ProductMicroservice.DTO;
+using MyBusiness.ProductMicroservice.Models;
 using MyBusiness.ReportMicroservice.DTO;
+using MyBusiness.ReportMicroservice.Models;
 using MyBusiness.SupplierMicroservice.DTO;
 
 namespace MyBusiness.TransactionMicroservice.DTO
@@ -16,9 +18,8 @@ namespace MyBusiness.TransactionMicroservice.DTO
     public string Type { get; set; }
     public string PaymentMethod { get; set; }
     public bool IsPaid { get; set; }
-    public int ProductId { get; set; }
-    public int SupplierId { get; set; }
-    public ProductDTO Product { get; set; }
-    public SupplierDTO Supplier { get; set; }
+    public ICollection<ProductDTO> Products { get; set; }
+    public ICollection<ReportDTO> Reports { get; set; }
+
     }
 }

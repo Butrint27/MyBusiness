@@ -21,10 +21,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<MySQLDataContext>(options =>
-options.UseMySQL(builder.Configuration.GetConnectionString("MySQL")));
+    options.UseMySQL(builder.Configuration.GetConnectionString("MySQL")));
 
 builder.Services.AddSingleton<MongoDBDataContext>(provider =>
-new MongoDBDataContext(builder.Configuration.GetConnectionString("MongoDB"), "mybusinessdb"));
+    new MongoDBDataContext(builder.Configuration.GetConnectionString("MongoDB"), "mybusinessdb"));
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
@@ -33,47 +33,48 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
-builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+
+// Register MongoDB collections using a scoped approach
+builder.Services.AddScoped(provider =>
 {
-    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("MongoDB"));
     var database = mongoClient.GetDatabase("mybusinessdb");
     return database.GetCollection<BsonDocument>("employees");
 });
-builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+builder.Services.AddScoped(provider =>
 {
-    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("MongoDB"));
     var database = mongoClient.GetDatabase("mybusinessdb");
     return database.GetCollection<BsonDocument>("products");
 });
-builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+builder.Services.AddScoped(provider =>
 {
-    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("MongoDB"));
     var database = mongoClient.GetDatabase("mybusinessdb");
     return database.GetCollection<BsonDocument>("reports");
 });
-builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+builder.Services.AddScoped(provider =>
 {
-    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("MongoDB"));
     var database = mongoClient.GetDatabase("mybusinessdb");
     return database.GetCollection<BsonDocument>("transactions");
 });
-builder.Services.AddSingleton<IMongoCollection<BsonDocument>>(provider =>
+builder.Services.AddScoped(provider =>
 {
-    var mongoClient = new MongoClient("mongodb://localhost:27017");
+    var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("MongoDB"));
     var database = mongoClient.GetDatabase("mybusinessdb");
     return database.GetCollection<BsonDocument>("suppliers");
 });
 
 builder.Services.AddCors(options =>
-options.AddPolicy("AllowReactFrontend",
-        builder =>
-        {
-            builder.WithOrigins("http://localhost:3000")
-                   .AllowAnyHeader()
-                   .AllowAnyMethod();
-        }
-)
-);
+{
+    options.AddPolicy("AllowReactFrontend", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -84,8 +85,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateLifetime = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
 
@@ -104,31 +104,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
 app.UseCors("AllowReactFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

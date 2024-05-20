@@ -18,7 +18,7 @@ namespace MyBusiness.ProductMicroservice.Models
     public DateTime LastUpdated { get; set; }
     public string Category { get; set; }
     public bool IsActive { get; set; }
-    public List<Transaction> Transactions { get; set; }
-    public List<Report> Reports { get; set; }
+    public ICollection<Transaction> Transactions { get; set; }
+    public ICollection<Supplier> Suppliers { get; set; }
     }
 }

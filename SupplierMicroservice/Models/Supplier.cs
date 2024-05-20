@@ -18,8 +18,8 @@ namespace MyBusiness.SupplierMicroservice.Models
     public string Country { get; set; }
     public string Website { get; set; }
     public bool IsActive { get; set; }
-    public List<Transaction> Transactions { get; set; }
-    public List<Report> Reports { get; set; }
+    public ICollection<Product> Products { get; set; }
+    public ICollection<Report> Reports { get; set; }
 
     }
 }

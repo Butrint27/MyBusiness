@@ -15,7 +15,7 @@ namespace MyBusiness.RelationData
 {
     public class MySQLDataContext : DbContext
     {
-     public MySQLDataContext(DbContextOptions<MySQLDataContext> options) : base(options)
+    public MySQLDataContext(DbContextOptions<MySQLDataContext> options) : base(options)
     {
     }
 
@@ -31,39 +31,34 @@ namespace MyBusiness.RelationData
     {
         // Define relationships between entities
 
-    modelBuilder.Entity<Employee>()
-        .HasOne(e => e.Department)
-        .WithMany(d => d.Employees)
-        .HasForeignKey(e => e.DepartmentId)
-        .IsRequired();
+        modelBuilder.Entity<Employee>()
+            .HasOne(e => e.Department)
+            .WithMany(d => d.Employees)
+            .HasForeignKey(e => e.DepartmentId)
+            .IsRequired();
 
-    modelBuilder.Entity<Transaction>()
-        .HasOne(t => t.Product)
-        .WithMany(p => p.Transactions)
-        .HasForeignKey(t => t.ProductId)
-        .IsRequired();
+        modelBuilder.Entity<Product>()
+            .HasMany(p => p.Transactions)
+            .WithMany(t => t.Products)
+            .UsingEntity(j => j.ToTable("ProductTransaction"));
 
-    modelBuilder.Entity<Transaction>()
-        .HasOne(t => t.Supplier)
-        .WithMany(s => s.Transactions)
-        .HasForeignKey(t => t.SupplierId)
-        .IsRequired();
+        // Product-Supplier Relationship (Many-to-Many)
+        modelBuilder.Entity<Product>()
+            .HasMany(p => p.Suppliers)
+            .WithMany(s => s.Products)
+            .UsingEntity(j => j.ToTable("ProductSupplier"));
 
-    modelBuilder.Entity<Report>()
-        .HasOne(r => r.Supplier)
-        .WithMany(s => s.Reports)
-        .HasForeignKey(r => r.SupplierId)
-        .IsRequired();
-        
-    modelBuilder.Entity<Report>()
-        .HasMany(r => r.Transactions)
-        .WithMany(t => t.Reports)
-        .UsingEntity(j => j.ToTable("TransactionReports"));
+        // Transaction-Report Relationship (Many-to-Many)
+        modelBuilder.Entity<Transaction>()
+            .HasMany(t => t.Reports)
+            .WithMany(r => r.Transactions)
+            .UsingEntity(j => j.ToTable("TransactionReport"));
 
-    modelBuilder.Entity<Report>()
-        .HasMany(r => r.Products)
-        .WithMany(p => p.Reports)
-        .UsingEntity(j => j.ToTable("ProductReports"));
-       }
+        // Supplier-Report Relationship (Many-to-Many)
+        modelBuilder.Entity<Supplier>()
+            .HasMany(s => s.Reports)
+            .WithMany(r => r.Suppliers)
+            .UsingEntity(j => j.ToTable("SupplierReport"));
+    }
     }
 }
