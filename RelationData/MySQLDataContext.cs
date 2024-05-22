@@ -38,27 +38,25 @@ namespace MyBusiness.RelationData
             .IsRequired();
 
         modelBuilder.Entity<Product>()
-            .HasMany(p => p.Transactions)
-            .WithMany(t => t.Products)
-            .UsingEntity(j => j.ToTable("ProductTransaction"));
-
-        // Product-Supplier Relationship (Many-to-Many)
-        modelBuilder.Entity<Product>()
-            .HasMany(p => p.Suppliers)
+            .HasOne(p => p.Supplier)
             .WithMany(s => s.Products)
-            .UsingEntity(j => j.ToTable("ProductSupplier"));
+            .HasForeignKey(p => p.SupplierId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Transaction-Report Relationship (Many-to-Many)
+        // Product-Transaction Relationship (One-to-Many)
         modelBuilder.Entity<Transaction>()
-            .HasMany(t => t.Reports)
-            .WithMany(r => r.Transactions)
-            .UsingEntity(j => j.ToTable("TransactionReport"));
+            .HasOne(t => t.Product)
+            .WithMany(p => p.Transactions)
+            .HasForeignKey(t => t.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Supplier-Report Relationship (Many-to-Many)
-        modelBuilder.Entity<Supplier>()
-            .HasMany(s => s.Reports)
-            .WithMany(r => r.Suppliers)
-            .UsingEntity(j => j.ToTable("SupplierReport"));
+        // Transaction-Report Relationship (One-to-Many)
+        modelBuilder.Entity<Report>()
+            .HasOne(r => r.Transaction)
+            .WithMany(t => t.Reports)
+            .HasForeignKey(r => r.TransactionId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
     }
-    }
+  }
 }

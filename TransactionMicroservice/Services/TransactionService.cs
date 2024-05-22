@@ -5,13 +5,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using MyBusiness.ProductMicroservice.DTO;
-using MyBusiness.ProductMicroservice.Models;
 using MyBusiness.RelationData;
-using MyBusiness.ReportMicroservice.DTO;
-using MyBusiness.SupplierMicroservice.DTO;
-using MyBusiness.SupplierMicroservice.Models;
 using MyBusiness.TransactionMicroservice.DTO;
 using MyBusiness.TransactionMicroservice.Models;
 
@@ -20,114 +16,98 @@ namespace MyBusiness.TransactionMicroservice.Services
     public class TransactionService : ITransactionService
     {
     private readonly MySQLDataContext _mysqlContext;
-    private readonly MongoDBDataContext _mongodbcontext;
     private readonly IMongoCollection<BsonDocument> _mongoCollection;
+    private readonly IMapper _mapper;
 
-
-    public TransactionService(MySQLDataContext mysqlContext, MongoDBDataContext mongodbcontext, IMongoCollection<BsonDocument> mongoCollection) 
+    public TransactionService(MySQLDataContext mysqlContext, IMongoCollection<BsonDocument> mongoCollection, IMapper mapper) 
     {
         _mysqlContext = mysqlContext;
-        _mongodbcontext = mongodbcontext;
         _mongoCollection = mongoCollection;
+        _mapper = mapper;
     }
-
-     public async Task<IEnumerable<TransactionDTO>> GetAllTransactionsAsync()
+      public async Task<IEnumerable<TransactionDTO>> GetAllTransactionsAsync()
     {
-        var transactionsMySQL = await _mysqlContext.Transactions
-            .Select(t => new TransactionDTO
-            {
-                TransactionId = t.TransactionId,
-                Date = t.Date,
-                Amount = t.Amount,
-                Type = t.Type,
-                PaymentMethod = t.PaymentMethod,
-                IsPaid = t.IsPaid
-            })
-            .ToListAsync();
+        var mySqlTransactions = await _mysqlContext.Transactions.Include(t => t.Reports).ToListAsync();
+        var mongoTransactions = await _mongoCollection.Find(new BsonDocument()).ToListAsync();
 
-        return transactionsMySQL;
+        var mySqlTransactionDtos = _mapper.Map<IEnumerable<TransactionDTO>>(mySqlTransactions);
+        var mongoTransactionDtos = mongoTransactions.Select(t => _mapper.Map<TransactionDTO>(BsonSerializer.Deserialize<Transaction>(t)));
+
+        // Combine data from both databases if needed
+
+        return mySqlTransactionDtos;
     }
 
-    public async Task<TransactionDTO> GetTransactionByIdAsync(int transactionId)
+   public async Task<TransactionDTO> GetTransactionByIdAsync(int transactionId)
+{
+    var mySqlTransaction = await _mysqlContext.Transactions.Include(t => t.Reports).FirstOrDefaultAsync(t => t.TransactionId == transactionId);
+    
+    TransactionDTO mySqlTransactionDto = null;
+    if (mySqlTransaction != null)
     {
-        var transactionMySQL = await _mysqlContext.Transactions.FindAsync(transactionId);
-        if (transactionMySQL != null)
-        {
-            var transactionDTO = new TransactionDTO
-            {
-                TransactionId = transactionMySQL.TransactionId,
-                Date = transactionMySQL.Date,
-                Amount = transactionMySQL.Amount,
-                Type = transactionMySQL.Type,
-                PaymentMethod = transactionMySQL.PaymentMethod,
-                IsPaid = transactionMySQL.IsPaid
-            };
-
-            return transactionDTO;
-        }
-
-        return null;
+        mySqlTransactionDto = _mapper.Map<TransactionDTO>(mySqlTransaction);
     }
+
+    TransactionDTO mongoTransactionDto = null;
+    var mongoTransaction = await _mongoCollection.Find(Builders<BsonDocument>.Filter.Eq("transactionId", transactionId)).FirstOrDefaultAsync();
+    if (mongoTransaction != null)
+    {
+        mongoTransactionDto = _mapper.Map<TransactionDTO>(BsonSerializer.Deserialize<Transaction>(mongoTransaction));
+    }
+
+    // Combine data from both databases if needed
+
+    return mySqlTransactionDto ?? mongoTransactionDto;
+}
 
     public async Task<TransactionDTO> CreateTransactionAsync(TransactionDTO transactionDTO)
     {
-        var transactionMySQL = new Transaction
-        {
-            Date = transactionDTO.Date,
-            Amount = transactionDTO.Amount,
-            Type = transactionDTO.Type,
-            PaymentMethod = transactionDTO.PaymentMethod,
-            IsPaid = transactionDTO.IsPaid
-        };
-
-        await _mysqlContext.Transactions.AddAsync(transactionMySQL);
+        var transaction = _mapper.Map<Transaction>(transactionDTO);
+        await _mysqlContext.Transactions.AddAsync(transaction);
         await _mysqlContext.SaveChangesAsync();
 
-        var document = transactionDTO.ToBsonDocument();
-        await _mongoCollection.InsertOneAsync(document);
+        var bsonDocument = transaction.ToBsonDocument();
+        bsonDocument.Remove("_id"); // Remove the MongoDB ObjectId if it exists
+        await _mongoCollection.InsertOneAsync(bsonDocument);
 
-        transactionDTO.TransactionId = transactionMySQL.TransactionId;
-        return transactionDTO;
+        return _mapper.Map<TransactionDTO>(transaction);
     }
 
     public async Task<TransactionDTO> UpdateTransactionAsync(TransactionDTO transactionDTO)
     {
-        var transactionMySQL = await _mysqlContext.Transactions.FindAsync(transactionDTO.TransactionId);
-        if (transactionMySQL == null)
-            return null;
+    var existingTransaction = await _mysqlContext.Transactions.FindAsync(transactionDTO.TransactionId);
+    if (existingTransaction == null)
+    {
+        return null; // Transaction not found
+    }
 
-        transactionMySQL.Date = transactionDTO.Date;
-        transactionMySQL.Amount = transactionDTO.Amount;
-        transactionMySQL.Type = transactionDTO.Type;
-        transactionMySQL.PaymentMethod = transactionDTO.PaymentMethod;
-        transactionMySQL.IsPaid = transactionDTO.IsPaid;
+    _mapper.Map(transactionDTO, existingTransaction);
+    await _mysqlContext.SaveChangesAsync();
 
-        _mysqlContext.Transactions.Update(transactionMySQL);
-        await _mysqlContext.SaveChangesAsync();
+    var filter = Builders<BsonDocument>.Filter.Eq("transactionId", transactionDTO.TransactionId);
+    var update = Builders<BsonDocument>.Update
+        .Set("productId", transactionDTO.ProductId)
+        .Set("quantity", transactionDTO.Quantity)
+        .Set("transactionDate", transactionDTO.TransactionDate);
+    // Add more fields to update if needed
 
-        var filter = Builders<BsonDocument>.Filter.Eq("TransactionId", transactionDTO.TransactionId);
-        var update = Builders<BsonDocument>.Update
-            .Set("Date", transactionDTO.Date)
-            .Set("Amount", transactionDTO.Amount)
-            .Set("Type", transactionDTO.Type)
-            .Set("PaymentMethod", transactionDTO.PaymentMethod)
-            .Set("IsPaid", transactionDTO.IsPaid);
+    await _mongoCollection.UpdateOneAsync(filter, update);
 
-        await _mongoCollection.UpdateOneAsync(filter, update);
-
-        return transactionDTO;
+    return _mapper.Map<TransactionDTO>(existingTransaction);
     }
 
     public async Task<bool> DeleteTransactionAsync(int transactionId)
     {
-        var transactionMySQL = await _mysqlContext.Transactions.FindAsync(transactionId);
-        if (transactionMySQL == null)
-            return false;
+        var transaction = await _mysqlContext.Transactions.FindAsync(transactionId);
+        if (transaction == null)
+        {
+            return false; // Transaction not found
+        }
 
-        _mysqlContext.Transactions.Remove(transactionMySQL);
+        _mysqlContext.Transactions.Remove(transaction);
         await _mysqlContext.SaveChangesAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Eq("TransactionId", transactionId);
+        var filter = Builders<BsonDocument>.Filter.Eq("transactionId", transactionId);
         await _mongoCollection.DeleteOneAsync(filter);
 
         return true;

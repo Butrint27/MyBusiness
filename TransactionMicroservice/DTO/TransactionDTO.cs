@@ -13,13 +13,9 @@ namespace MyBusiness.TransactionMicroservice.DTO
     public class TransactionDTO
     {
     public int TransactionId { get; set; }
-    public DateTime Date { get; set; }
-    public decimal Amount { get; set; }
-    public string Type { get; set; }
-    public string PaymentMethod { get; set; }
-    public bool IsPaid { get; set; }
-    public ICollection<ProductDTO> Products { get; set; }
-    public ICollection<ReportDTO> Reports { get; set; }
+    public int ProductId { get; set; } // Changed to int
+    public int Quantity { get; set; }
+    public DateTime TransactionDate { get; set; }
 
     }
 }

@@ -14,12 +14,7 @@ namespace MyBusiness.ProductMicroservice.DTO
     public string Name { get; set; }
     public string Description { get; set; }
     public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public string Category { get; set; }
-    public bool IsActive { get; set; }
-    public ICollection<TransactionDTO> Transactions { get; set; }
-    public ICollection<SupplierDTO> Suppliers { get; set; }
+    public int SupplierId { get; set; }
     
     }
 }

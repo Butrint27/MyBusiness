@@ -13,12 +13,9 @@ namespace MyBusiness.ReportMicroservice.DTO
     public class ReportDTO
     {
     public int ReportId { get; set; }
-    public string Title { get; set; }
-    public DateTime DateGenerated { get; set; }
-    public string Content { get; set; }
-    public string Author { get; set; }
-    public ICollection<TransactionDTO> Transactions { get; set; }
-    public ICollection<SupplierDTO> Suppliers { get; set; }
+    public int TransactionId { get; set; } // Changed to int
+    public DateTime ReportDate { get; set; }
+    public string Details { get; set; }
     
     }
 }

@@ -10,6 +10,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MyBusiness.DepartmentMicroservice.Services;
 using MyBusiness.EmployeeMicroservice.Services;
+using MyBusiness.Mapping;
 using MyBusiness.ProductMicroservice.Services;
 using MyBusiness.RelationData;
 using MyBusiness.ReportMicroservice.Services;
@@ -88,6 +89,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
+
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

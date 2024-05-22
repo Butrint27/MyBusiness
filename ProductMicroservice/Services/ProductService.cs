@@ -20,165 +20,111 @@ namespace MyBusiness.ProductMicroservice.Services
     {
     private readonly MySQLDataContext _mysqlContext;
     private readonly IMongoCollection<BsonDocument> _mongoCollection;
+    private readonly IMapper _mapper;
 
-    public ProductService(MySQLDataContext mySqlContext, IMongoCollection<BsonDocument> mongoCollection)
+    public ProductService(MySQLDataContext mySqlContext, IMongoCollection<BsonDocument> mongoCollection, IMapper mapper)
     {
         _mysqlContext = mySqlContext;
         _mongoCollection = mongoCollection;
+        _mapper = mapper;
     }
 
-    public async Task<IEnumerable<ProductDTO>> GetAllProductsAsync()
+     public async Task<IEnumerable<ProductDTO>> GetAllProductsAsync()
     {
-        var productsMySQL = await _mysqlContext.Products
-            .Include(p => p.Transactions)
-            .Include(p => p.Suppliers)
-            .ToListAsync();
+        var mySqlProducts = await _mysqlContext.Products.Include(p => p.Supplier).ToListAsync();
+        var mongoProducts = await _mongoCollection.Find(new BsonDocument()).ToListAsync();
 
-        var productsDTO = productsMySQL.Select(p => new ProductDTO
-        {
-            ProductId = p.ProductId,
-            Name = p.Name,
-            Description = p.Description,
-            Price = p.Price,
-            StockQuantity = p.StockQuantity,
-            LastUpdated = p.LastUpdated,
-            Category = p.Category,
-            IsActive = p.IsActive,
-            Transactions = p.Transactions.Select(t => new TransactionDTO
-            {
-                TransactionId = t.TransactionId,
-                Date = t.Date,
-                Amount = t.Amount,
-                Type = t.Type,
-                PaymentMethod = t.PaymentMethod,
-                IsPaid = t.IsPaid
-            }).ToList(),
-            Suppliers = p.Suppliers.Select(s => new SupplierDTO
-            {
-                SupplierId = s.SupplierId,
-                Name = s.Name,
-                ContactInfo = s.ContactInfo,
-                Address = s.Address,
-                City = s.City,
-                Country = s.Country,
-                Website = s.Website,
-                IsActive = s.IsActive
-            }).ToList()
-        });
+        var mySqlProductDtos = _mapper.Map<IEnumerable<ProductDTO>>(mySqlProducts);
+        var mongoProductDtos = mongoProducts.Select(p => _mapper.Map<ProductDTO>(BsonSerializer.Deserialize<Product>(p)));
 
-        return productsDTO;
+        // Combine data from both databases if needed
+
+        return mySqlProductDtos;
     }
 
     public async Task<ProductDTO> GetProductByIdAsync(int productId)
     {
-        var productMySQL = await _mysqlContext.Products
-            .Include(p => p.Transactions)
-            .Include(p => p.Suppliers)
-            .FirstOrDefaultAsync(p => p.ProductId == productId);
+    var mySqlProduct = await _mysqlContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+    var mongoProduct = await _mongoCollection.Find(Builders<BsonDocument>.Filter.Eq("productId", productId)).FirstOrDefaultAsync();
 
-        if (productMySQL == null)
-            return null;
+    if (mySqlProduct == null && mongoProduct == null)
+    {
+        return null;
+    }
 
-        var productDTO = new ProductDTO
+    var combinedProductDto = new ProductDTO();
+
+    if (mySqlProduct != null)
+    {
+        combinedProductDto = _mapper.Map<ProductDTO>(mySqlProduct);
+    }
+
+    if (mongoProduct != null)
+    {
+        try
         {
-            ProductId = productMySQL.ProductId,
-            Name = productMySQL.Name,
-            Description = productMySQL.Description,
-            Price = productMySQL.Price,
-            StockQuantity = productMySQL.StockQuantity,
-            LastUpdated = productMySQL.LastUpdated,
-            Category = productMySQL.Category,
-            IsActive = productMySQL.IsActive,
-            Transactions = productMySQL.Transactions.Select(t => new TransactionDTO
-            {
-                TransactionId = t.TransactionId,
-                Date = t.Date,
-                Amount = t.Amount,
-                Type = t.Type,
-                PaymentMethod = t.PaymentMethod,
-                IsPaid = t.IsPaid
-            }).ToList(),
-            Suppliers = productMySQL.Suppliers.Select(s => new SupplierDTO
-            {
-                SupplierId = s.SupplierId,
-                Name = s.Name,
-                ContactInfo = s.ContactInfo,
-                Address = s.Address,
-                City = s.City,
-                Country = s.Country,
-                Website = s.Website,
-                IsActive = s.IsActive
-            }).ToList()
-        };
+            var mongoProductEntity = BsonSerializer.Deserialize<Product>(mongoProduct);
+            var mongoProductDto = _mapper.Map<ProductDTO>(mongoProductEntity);
 
-        return productDTO;
+            combinedProductDto.Name = mongoProductDto.Name ?? combinedProductDto.Name;
+            combinedProductDto.Description = mongoProductDto.Description ?? combinedProductDto.Description;
+            combinedProductDto.Price = mongoProductDto.Price != 0 ? mongoProductDto.Price : combinedProductDto.Price;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deserializing MongoDB product: {ex.Message}");
+        }
+    }
+    return combinedProductDto;
     }
 
     public async Task<ProductDTO> CreateProductAsync(ProductDTO productDTO)
     {
-        var productMySQL = new Product
-        {
-            Name = productDTO.Name,
-            Description = productDTO.Description,
-            Price = productDTO.Price,
-            StockQuantity = productDTO.StockQuantity,
-            LastUpdated = DateTime.UtcNow,
-            Category = productDTO.Category,
-            IsActive = productDTO.IsActive
-        };
-
-        await _mysqlContext.Products.AddAsync(productMySQL);
+        var product = _mapper.Map<Product>(productDTO);
+        await _mysqlContext.Products.AddAsync(product);
         await _mysqlContext.SaveChangesAsync();
 
-        var document = productDTO.ToBsonDocument();
-        await _mongoCollection.InsertOneAsync(document);
+        var bsonDocument = product.ToBsonDocument();
+        bsonDocument.Remove("_id"); // Remove the MongoDB ObjectId if it exists
+        await _mongoCollection.InsertOneAsync(bsonDocument);
 
-        productDTO.ProductId = productMySQL.ProductId;
-        return productDTO;
+        return _mapper.Map<ProductDTO>(product);
     }
 
     public async Task<ProductDTO> UpdateProductAsync(ProductDTO productDTO)
     {
-        var productMySQL = await _mysqlContext.Products.FindAsync(productDTO.ProductId);
-        if (productMySQL == null)
-            return null;
+        var existingProduct = await _mysqlContext.Products.FindAsync(productDTO.ProductId);
+        if (existingProduct == null)
+        {
+            return null; // Product not found
+        }
 
-        productMySQL.Name = productDTO.Name;
-        productMySQL.Description = productDTO.Description;
-        productMySQL.Price = productDTO.Price;
-        productMySQL.StockQuantity = productDTO.StockQuantity;
-        productMySQL.LastUpdated = DateTime.UtcNow;
-        productMySQL.Category = productDTO.Category;
-        productMySQL.IsActive = productDTO.IsActive;
-
-        _mysqlContext.Products.Update(productMySQL);
+        _mapper.Map(productDTO, existingProduct);
         await _mysqlContext.SaveChangesAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Eq("ProductId", productDTO.ProductId);
-        var update = Builders<BsonDocument>.Update
-            .Set("Name", productDTO.Name)
-            .Set("Description", productDTO.Description)
-            .Set("Price", productDTO.Price)
-            .Set("StockQuantity", productDTO.StockQuantity)
-            .Set("LastUpdated", DateTime.UtcNow)
-            .Set("Category", productDTO.Category)
-            .Set("IsActive", productDTO.IsActive);
-
+        var filter = Builders<BsonDocument>.Filter.Eq("productId", productDTO.ProductId);
+        var update = Builders<BsonDocument>.Update.Set("name", productDTO.Name)
+                                                  .Set("description", productDTO.Description)
+                                                  .Set("price", productDTO.Price)
+                                                  .Set("supplierId", productDTO.SupplierId);
+        // Update other fields as needed
         await _mongoCollection.UpdateOneAsync(filter, update);
 
-        return productDTO;
+        return _mapper.Map<ProductDTO>(existingProduct);
     }
 
     public async Task<bool> DeleteProductAsync(int productId)
     {
-        var productMySQL = await _mysqlContext.Products.FindAsync(productId);
-        if (productMySQL == null)
-            return false;
+        var product = await _mysqlContext.Products.FindAsync(productId);
+        if (product == null)
+        {
+            return false; // Product not found
+        }
 
-        _mysqlContext.Products.Remove(productMySQL);
+        _mysqlContext.Products.Remove(product);
         await _mysqlContext.SaveChangesAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Eq("ProductId", productId);
+        var filter = Builders<BsonDocument>.Filter.Eq("productId", productId);
         await _mongoCollection.DeleteOneAsync(filter);
 
         return true;

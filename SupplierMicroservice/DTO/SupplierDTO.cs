@@ -14,13 +14,7 @@ namespace MyBusiness.SupplierMicroservice.DTO
     {
     public int SupplierId { get; set; }
     public string Name { get; set; }
-    public string ContactInfo { get; set; }
-    public string Address { get; set; }
-    public string City { get; set; }
-    public string Country { get; set; }
-    public string Website { get; set; }
-    public bool IsActive { get; set; }
-    public ICollection<ProductDTO> Products { get; set; }
-    public ICollection<ReportDTO> Reports { get; set; }
+    public string Email { get; set; }
+    public string Phone { get; set; }
     }
 }

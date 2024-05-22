@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MyBusiness.ProductMicroservice.DTO;
 using MyBusiness.RelationData;
@@ -17,156 +19,101 @@ namespace MyBusiness.ReportMicroservice.Services
     public class ReportService : IReportService
     {
     private readonly MySQLDataContext _mysqlContext;
-    private readonly MongoDBDataContext _mongodbcontext;
     private readonly IMongoCollection<BsonDocument> _mongoCollection;
+    private readonly IMapper _mapper;
 
-    public ReportService(MySQLDataContext mysqlContext, MongoDBDataContext mongodbcontext, IMongoCollection<BsonDocument> mongoCollection) 
+    public ReportService(MySQLDataContext mysqlContext, IMongoCollection<BsonDocument> mongoCollection, IMapper mapper) 
     {
         _mysqlContext = mysqlContext;
-        _mongodbcontext = mongodbcontext;
         _mongoCollection = mongoCollection;
+        _mapper = mapper;
     }
-
-     public async Task<IEnumerable<ReportDTO>> GetAllReportsAsync()
+    public async Task<IEnumerable<ReportDTO>> GetAllReportsAsync()
     {
-        var reportsMySQL = await _mysqlContext.Reports
-            .Include(r => r.Transactions)
-            .Include(r => r.Suppliers)
-            .ToListAsync();
+        var mySqlReports = await _mysqlContext.Reports.Include(r => r.Transaction).ToListAsync();
+        var mongoReports = await _mongoCollection.Find(new BsonDocument()).ToListAsync();
 
-        var reportsDTO = reportsMySQL.Select(r => new ReportDTO
-        {
-            ReportId = r.ReportId,
-            Title = r.Title,
-            DateGenerated = r.DateGenerated,
-            Content = r.Content,
-            Author = r.Author,
-            Transactions = r.Transactions.Select(t => new TransactionDTO
-            {
-                TransactionId = t.TransactionId,
-                Date = t.Date,
-                Amount = t.Amount,
-                Type = t.Type,
-                PaymentMethod = t.PaymentMethod,
-                IsPaid = t.IsPaid
-            }).ToList(),
-            Suppliers = r.Suppliers.Select(s => new SupplierDTO
-            {
-                SupplierId = s.SupplierId,
-                Name = s.Name,
-                ContactInfo = s.ContactInfo,
-                Address = s.Address,
-                City = s.City,
-                Country = s.Country,
-                Website = s.Website,
-                IsActive = s.IsActive
-            }).ToList()
-        });
+        var mySqlReportDtos = _mapper.Map<IEnumerable<ReportDTO>>(mySqlReports);
+        var mongoReportDtos = mongoReports.Select(r => _mapper.Map<ReportDTO>(BsonSerializer.Deserialize<Report>(r)));
 
-        return reportsDTO;
+        // Combine data from both databases if needed
+
+        return mySqlReportDtos;
     }
 
     public async Task<ReportDTO> GetReportByIdAsync(int reportId)
+{
+    // Get the report from MySQL
+    var mySqlReport = await _mysqlContext.Reports.FirstOrDefaultAsync(r => r.ReportId == reportId);
+    if (mySqlReport != null)
     {
-        var reportMySQL = await _mysqlContext.Reports
-            .Include(r => r.Transactions)
-            .Include(r => r.Suppliers)
-            .FirstOrDefaultAsync(r => r.ReportId == reportId);
-
-        if (reportMySQL == null)
-            return null;
-
-        var reportDTO = new ReportDTO
-        {
-            ReportId = reportMySQL.ReportId,
-            Title = reportMySQL.Title,
-            DateGenerated = reportMySQL.DateGenerated,
-            Content = reportMySQL.Content,
-            Author = reportMySQL.Author,
-            Transactions = reportMySQL.Transactions.Select(t => new TransactionDTO
-            {
-                TransactionId = t.TransactionId,
-                Date = t.Date,
-                Amount = t.Amount,
-                Type = t.Type,
-                PaymentMethod = t.PaymentMethod,
-                IsPaid = t.IsPaid
-            }).ToList(),
-            Suppliers = reportMySQL.Suppliers.Select(s => new SupplierDTO
-            {
-                SupplierId = s.SupplierId,
-                Name = s.Name,
-                ContactInfo = s.ContactInfo,
-                Address = s.Address,
-                City = s.City,
-                Country = s.Country,
-                Website = s.Website,
-                IsActive = s.IsActive
-            }).ToList()
-        };
-
-        return reportDTO;
+        // Map the report from MySQL to DTO
+        return _mapper.Map<ReportDTO>(mySqlReport);
     }
+
+    // Get the report from MongoDB
+    var mongoReport = await _mongoCollection.Find(Builders<BsonDocument>.Filter.Eq("reportId", reportId)).FirstOrDefaultAsync();
+    if (mongoReport != null)
+    {
+        // Map the report from MongoDB to DTO
+        return _mapper.Map<ReportDTO>(BsonSerializer.Deserialize<Report>(mongoReport));
+    }
+
+    // Report not found in either database
+    return null;
+}
 
     public async Task<ReportDTO> CreateReportAsync(ReportDTO reportDTO)
     {
-        var reportMySQL = new Report
-        {
-            Title = reportDTO.Title,
-            DateGenerated = reportDTO.DateGenerated,
-            Content = reportDTO.Content,
-            Author = reportDTO.Author
-        };
-
-        await _mysqlContext.Reports.AddAsync(reportMySQL);
+        var report = _mapper.Map<Report>(reportDTO);
+        await _mysqlContext.Reports.AddAsync(report);
         await _mysqlContext.SaveChangesAsync();
 
-        var document = reportDTO.ToBsonDocument();
-        await _mongoCollection.InsertOneAsync(document);
+        var bsonDocument = report.ToBsonDocument();
+        bsonDocument.Remove("_id"); // Remove the MongoDB ObjectId if it exists
+        await _mongoCollection.InsertOneAsync(bsonDocument);
 
-        reportDTO.ReportId = reportMySQL.ReportId;
-        return reportDTO;
+        return _mapper.Map<ReportDTO>(report);
     }
 
     public async Task<ReportDTO> UpdateReportAsync(ReportDTO reportDTO)
     {
-        var reportMySQL = await _mysqlContext.Reports.FindAsync(reportDTO.ReportId);
-        if (reportMySQL == null)
-            return null;
+        var existingReport = await _mysqlContext.Reports.FindAsync(reportDTO.ReportId);
+        if (existingReport == null)
+        {
+            return null; // Report not found
+        }
 
-        reportMySQL.Title = reportDTO.Title;
-        reportMySQL.DateGenerated = reportDTO.DateGenerated;
-        reportMySQL.Content = reportDTO.Content;
-        reportMySQL.Author = reportDTO.Author;
-
-        _mysqlContext.Reports.Update(reportMySQL);
+        _mapper.Map(reportDTO, existingReport);
         await _mysqlContext.SaveChangesAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Eq("ReportId", reportDTO.ReportId);
-        var update = Builders<BsonDocument>.Update
-            .Set("Title", reportDTO.Title)
-            .Set("DateGenerated", reportDTO.DateGenerated)
-            .Set("Content", reportDTO.Content)
-            .Set("Author", reportDTO.Author);
-
+        var filter = Builders<BsonDocument>.Filter.Eq("reportId", reportDTO.ReportId);
+        var update = Builders<BsonDocument>.Update.Set("transactionId", reportDTO.TransactionId)
+                                                  .Set("reportDate", reportDTO.ReportDate)
+                                                  .Set("details", reportDTO.Details);
+        // Update other fields as needed
         await _mongoCollection.UpdateOneAsync(filter, update);
 
-        return reportDTO;
+        return _mapper.Map<ReportDTO>(existingReport);
     }
 
     public async Task<bool> DeleteReportAsync(int reportId)
     {
-        var reportMySQL = await _mysqlContext.Reports.FindAsync(reportId);
-        if (reportMySQL == null)
-            return false;
+        var report = await _mysqlContext.Reports.FindAsync(reportId);
+        if (report == null)
+        {
+            return false; // Report not found
+        }
 
-        _mysqlContext.Reports.Remove(reportMySQL);
+        _mysqlContext.Reports.Remove(report);
         await _mysqlContext.SaveChangesAsync();
 
-        var filter = Builders<BsonDocument>.Filter.Eq("ReportId", reportId);
+        var filter = Builders<BsonDocument>.Filter.Eq("reportId", reportId);
         await _mongoCollection.DeleteOneAsync(filter);
 
         return true;
     }
+
+     
   }
 }

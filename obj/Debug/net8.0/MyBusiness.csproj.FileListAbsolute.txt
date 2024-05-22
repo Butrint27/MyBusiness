@@ -1,11 +1,3 @@
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.csproj.AssemblyReference.cache
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.GeneratedMSBuildEditorConfig.editorconfig
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.AssemblyInfoInputs.cache
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.AssemblyInfo.cs
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.csproj.CoreCompileInputs.cache
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.MvcApplicationPartsAssemblyInfo.cs
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.MvcApplicationPartsAssemblyInfo.cache
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.sourcelink.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/appsettings.Development.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/appsettings.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/MyBusiness
@@ -13,6 +5,7 @@
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/MyBusiness.runtimeconfig.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/MyBusiness.dll
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/MyBusiness.pdb
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/AutoMapper.dll
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/AWSSDK.Core.dll
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/AWSSDK.SecurityToken.dll
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/BCrypt.Net-Next.dll
@@ -133,6 +126,14 @@
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/runtimes/win/lib/netcoreapp3.0/System.Drawing.Common.dll
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/runtimes/win/lib/netcoreapp3.0/System.Windows.Extensions.dll
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.csproj.AssemblyReference.cache
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.GeneratedMSBuildEditorConfig.editorconfig
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.AssemblyInfoInputs.cache
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.AssemblyInfo.cs
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.csproj.CoreCompileInputs.cache
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.MvcApplicationPartsAssemblyInfo.cs
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.MvcApplicationPartsAssemblyInfo.cache
+/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.sourcelink.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/staticwebassets.build.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/staticwebassets.development.json
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/staticwebassets/msbuild.MyBusiness.Microsoft.AspNetCore.StaticWebAssets.props
@@ -147,4 +148,3 @@
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.pdb
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/MyBusiness.genruntimeconfig.cache
 /Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/obj/Debug/net8.0/ref/MyBusiness.dll
-/Users/this/Desktop/MyBusiness/back-end/MyBusiness/MyBusiness/bin/Debug/net8.0/AutoMapper.dll
