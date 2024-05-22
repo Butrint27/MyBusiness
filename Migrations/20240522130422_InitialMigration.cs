@@ -30,18 +30,18 @@ namespace MyBusiness.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Suppliers",
+                name: "suppliers",
                 columns: table => new
                 {
-                    SupplierId = table.Column<int>(type: "int", nullable: false)
+                    supplier_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false),
-                    Email = table.Column<string>(type: "longtext", nullable: false),
-                    Phone = table.Column<string>(type: "longtext", nullable: false)
+                    name = table.Column<string>(type: "longtext", nullable: false),
+                    email = table.Column<string>(type: "longtext", nullable: false),
+                    phone = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Suppliers", x => x.SupplierId);
+                    table.PrimaryKey("PK_suppliers", x => x.supplier_id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -89,68 +89,68 @@ namespace MyBusiness.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "products",
                 columns: table => new
                 {
-                    ProductId = table.Column<int>(type: "int", nullable: false)
+                    product_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(type: "longtext", nullable: false),
-                    Description = table.Column<string>(type: "longtext", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SupplierId = table.Column<int>(type: "int", nullable: false)
+                    name = table.Column<string>(type: "longtext", nullable: false),
+                    description = table.Column<string>(type: "longtext", nullable: false),
+                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    supplier_id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.ProductId);
+                    table.PrimaryKey("PK_products", x => x.product_id);
                     table.ForeignKey(
-                        name: "FK_Products_Suppliers_SupplierId",
-                        column: x => x.SupplierId,
-                        principalTable: "Suppliers",
-                        principalColumn: "SupplierId",
+                        name: "FK_products_suppliers_supplier_id",
+                        column: x => x.supplier_id,
+                        principalTable: "suppliers",
+                        principalColumn: "supplier_id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Transactions",
+                name: "transactions",
                 columns: table => new
                 {
-                    TransactionId = table.Column<int>(type: "int", nullable: false)
+                    transaction_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    TransactionDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    product_id = table.Column<int>(type: "int", nullable: false),
+                    quantity = table.Column<int>(type: "int", nullable: false),
+                    transaction_date = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Transactions", x => x.TransactionId);
+                    table.PrimaryKey("PK_transactions", x => x.transaction_id);
                     table.ForeignKey(
-                        name: "FK_Transactions_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "ProductId",
+                        name: "FK_transactions_products_product_id",
+                        column: x => x.product_id,
+                        principalTable: "products",
+                        principalColumn: "product_id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Reports",
+                name: "reports",
                 columns: table => new
                 {
-                    ReportId = table.Column<int>(type: "int", nullable: false)
+                    report_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    TransactionId = table.Column<int>(type: "int", nullable: false),
-                    ReportDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Details = table.Column<string>(type: "longtext", nullable: false)
+                    transaction_id = table.Column<int>(type: "int", nullable: false),
+                    report_date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    details = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Reports", x => x.ReportId);
+                    table.PrimaryKey("PK_reports", x => x.report_id);
                     table.ForeignKey(
-                        name: "FK_Reports_Transactions_TransactionId",
-                        column: x => x.TransactionId,
-                        principalTable: "Transactions",
-                        principalColumn: "TransactionId",
+                        name: "FK_reports_transactions_transaction_id",
+                        column: x => x.transaction_id,
+                        principalTable: "transactions",
+                        principalColumn: "transaction_id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
@@ -161,19 +161,19 @@ namespace MyBusiness.Migrations
                 column: "department_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Products_SupplierId",
-                table: "Products",
-                column: "SupplierId");
+                name: "IX_products_supplier_id",
+                table: "products",
+                column: "supplier_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reports_TransactionId",
-                table: "Reports",
-                column: "TransactionId");
+                name: "IX_reports_transaction_id",
+                table: "reports",
+                column: "transaction_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_ProductId",
-                table: "Transactions",
-                column: "ProductId");
+                name: "IX_transactions_product_id",
+                table: "transactions",
+                column: "product_id");
         }
 
         /// <inheritdoc />
@@ -183,7 +183,7 @@ namespace MyBusiness.Migrations
                 name: "employee");
 
             migrationBuilder.DropTable(
-                name: "Reports");
+                name: "reports");
 
             migrationBuilder.DropTable(
                 name: "user");
@@ -192,13 +192,13 @@ namespace MyBusiness.Migrations
                 name: "department");
 
             migrationBuilder.DropTable(
-                name: "Transactions");
+                name: "transactions");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "products");
 
             migrationBuilder.DropTable(
-                name: "Suppliers");
+                name: "suppliers");
         }
     }
 }
